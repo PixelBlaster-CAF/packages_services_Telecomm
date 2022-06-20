@@ -717,11 +717,6 @@ public class Ringer {
 
         stopRinging();
 
-        if (Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.VIBRATE_ON_CALLWAITING, 0, UserHandle.USER_CURRENT) == 1) {
-            vibrate(200, 300, 500);
-        }
-
         if (mCallWaitingPlayer == null) {
             Log.addEvent(call, LogUtils.Events.START_CALL_WAITING_TONE, reason);
             mCallWaitingCall = call;
@@ -835,27 +830,6 @@ public class Ringer {
         return mVibrator.hasVibrator()
                 && mSystemSettingsUtil.isRingVibrationEnabled(context)
                 && audioManager.getRingerModeInternal() != AudioManager.RINGER_MODE_SILENT;
-    }
-
-    public void startVibratingForOutgoingCallActive() {
-        if (!mIsVibrating
-                && Settings.Global.getInt(mContext.getContentResolver(),
-                        Settings.Global.VIBRATING_FOR_OUTGOING_CALL_ACCEPTED, 1) == 1) {
-            mIsVibrating = true;
-            java.util.concurrent.Executors.defaultThreadFactory().newThread(() -> {
-                final VibrationEffect vibrationEffect =
-                        mVibrationEffectProxy.createWaveform(SIMPLE_VIBRATION_PATTERN,
-                        SIMPLE_VIBRATION_AMPLITUDE, REPEAT_SIMPLE_VIBRATION_AT);
-                final AudioAttributes vibrationAttributes = new AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                        .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                        .build();
-                mVibrator.vibrate(vibrationEffect, vibrationAttributes);
-                android.os.SystemClock.sleep(OUTGOING_CALL_VIBRATING_DURATION);
-                mVibrator.cancel();
-                mIsVibrating = false;
-            }).start();
-        }
     }
 
     private RingerAttributes getRingerAttributes(Call call, boolean isHfpDeviceAttached) {
